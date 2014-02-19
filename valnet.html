@@ -1,0 +1,102 @@
+<html>
+<head>
+	<title>ValNet Example 1</title>
+    <script src="lib/jquery/jquery.min.js" type="text/javascript"></script>
+    <script src="lib/jquery-ui/1.10.4/ui/minified/jquery-ui.min.js" type="text/javascript"></script>
+    <script src="lib/underscore.js/1.5.2/underscore-min.js" type="text/javascript"></script> 
+	<link rel="stylesheet" type="text/css" href="lib/jquery-ui/1.10.4/themes/ui-lightness/jquery-ui.min.css">
+
+    <script src="fractaldom.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="fractaldom.css">
+
+	<style>
+		body {
+			background-color: black;
+			font-size: 70%;
+		}
+
+	</style>
+</head>
+
+<body>
+</body>
+
+<script>
+
+	var data = {"nodes": [{"start": "2013-09-19", "end": "2013-11-01", "id": "Process-400", "name": "Make User Guide"}, {"start": "2014-04-25", "end": "2014-04-28", "id": "Process-386", "name": "Make piezo micromanipulator products for first offering"}, {"start": "2013-09-20", "end": "2013-09-25", "id": "Process-383", "name": "Make Two- and Three-channel Piezo Electronics"}, {"start": "2013-11-01", "end": "2013-11-02", "id": "Process-416", "name": "Make LabView program for 1 axis piezo"}, {"start": "2013-11-12", "end": "2014-01-04", "id": "Process-395", "name": "Make Piezo one/two/three-channel electronics"}, {"start": "2013-11-08", "end": "2013-11-30", "id": "Process-415", "name": "Make Computer program prototype"}, {"start": "2013-11-12", "end": "2013-11-16", "id": "Process-384", "name": "Make Piezo User Guide in English"}, {"start": "2013-11-12", "end": "2013-11-21", "id": "Process-385", "name": "Make Piezo User Guide in French"}, {"start": "2013-11-12", "end": "2013-12-27", "id": "Process-393", "name": "Make Piezo micromanipulator mechanical design"}, {"start": "2013-11-14", "end": "2013-12-03", "id": "Process-394", "name": "Make or order piezo robot fingers"}, {"start": "2013-12-21", "end": "2013-12-21", "id": "Process-406", "name": "make piezo mechanics layer"}, {"start": "2013-11-14", "end": "2014-01-05", "id": "Process-388", "name": "Make market study - pricing"}, {"start": "2013-09-10", "end": "2013-11-01", "id": "Process-387", "name": "Make Brochure"}, {"start": "2014-02-17", "end": "2014-02-24", "id": "Process-396", "name": "Make Piezo micromanipulator mechanics"}], "edges": [{"width": 1, "to_node": "Process-386", "from_node": "Process-400", "label": "User Guide"}, {"width": 1, "to_node": "Process-386", "from_node": "Process-383", "label": "Piezo micromanipulator two-channel electronics, Piezo micromanipulator three-channel electronics"}, {"width": 1, "to_node": "Process-395", "from_node": "Process-416", "label": ""}, {"width": 1, "to_node": "Process-415", "from_node": "Process-416", "label": ""}, {"width": 1, "to_node": "Process-386", "from_node": "Process-384", "label": "User Guide"}, {"width": 1, "to_node": "Process-384", "from_node": "Process-395", "label": ""}, {"width": 1, "to_node": "Process-386", "from_node": "Process-385", "label": "User Guide"}, {"width": 1, "to_node": "Process-394", "from_node": "Process-393", "label": "Piezo micromanipulator mechanical design"}, {"width": 1, "to_node": "Process-406", "from_node": "Process-393", "label": "Piezo micromanipulator mechanical design"}, {"width": 1, "to_node": "Process-388", "from_node": "Process-395", "label": "Piezo micromanipulator one-channel electronics"}, {"width": 1, "to_node": "Process-386", "from_node": "Process-395", "label": "Piezo micromanipulator one-channel electronics"}, {"width": 1, "to_node": "Process-387", "from_node": "Process-395", "label": ""}, {"width": 1, "to_node": "Process-396", "from_node": "Process-394", "label": "Piezo micromanipulator three-channel finger, Piezo micromanipulator one-channel finger, Piezo micromanipulator two-channel finger"}, {"width": 1, "to_node": "Process-396", "from_node": "Process-406", "label": "Untested piezo mechanics layer"}, {"width": 1, "to_node": "Process-386", "from_node": "Process-396", "label": "Piezo micromanipulator one-channel mechanics, Piezo micromanipulator two-channel mechanics, Piezo micromanipulator three-channel mechanics"}, {"width": 1, "to_node": "Process-386", "from_node": "Process-415", "label": ""}]};
+
+	var d = fractaldom();
+	d.appendTo($('body'));
+	d.init();
+
+	var minDate, maxDate;
+	for (var i = 0; i < data.nodes.length; i++) {
+		var N = data.nodes[i];
+		var start = Date.parse(N.start);
+		var end = Date.parse(N.end);
+		var mid = (start + end)/2.0;
+		N.mid = mid;	
+		if (i == 0)
+			minDate = maxDate = mid;
+		else {
+			if (mid < minDate) minDate = mid;
+			if (mid > maxDate) maxDate = mid;
+		}				
+	}
+
+	function getX(date) {
+		return (maxDate!=minDate) ? 2500 * (date - minDate) / (maxDate - minDate) : 0;
+	}
+
+	var splitStartEnd = false;
+
+	if (!splitStartEnd) {
+		for (var i = 0; i < data.nodes.length; i++) {
+			var N = data.nodes[i];
+
+			var rx = getX(N.mid);
+
+			var ry = 500 * Math.random();
+			var x = d.newNode(N.id, { title: N.name });
+			x.append('Process:<br/><b>' + N.name + '</b><br/>' + N.start + '..' + N.end);
+			x.position( rx,ry );
+			x.setWidth( Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start))) );
+			x.setHeight( 150 );
+		}
+		for (var i = 0; i < data.edges.length; i++) {
+			var E = data.edges[i];
+			d.newEdge(E.from_node, E.to_node, { label: E.label, lineWidth: E.width });
+		}
+	}
+	else {
+		for (var i = 0; i < data.nodes.length; i++) {
+			var N = data.nodes[i];
+
+			var ry = 500 * Math.random();
+
+			var xs = d.newNode(N.id+'s', { title: N.name });
+			xs.append('Process:<br/><b>' + N.name + '</b><br/>' + N.start);
+			xs.position( getX(Date.parse(N.start)),ry );
+			xs.setWidth( 150 );
+			xs.setHeight( 150 );
+
+			var xe = d.newNode(N.id+'e', { title: N.name });
+			xe.append(N.end);
+			xe.position( getX(Date.parse(N.end)), ry );
+			xe.setWidth( 150 );
+			xe.setHeight( 70 );
+
+			d.newEdge(N.id + 's', N.id + 'e', { lineWidth: 15 })
+
+		}
+		for (var i = 0; i < data.edges.length; i++) {
+			var E = data.edges[i];
+			d.newEdge(E.from_node + 'e', E.to_node + 's', { label: E.label, lineWidth: E.width });
+		}
+	}
+
+	d.layoutFD(false, true, 50);
+
+</script>
+
+</html>

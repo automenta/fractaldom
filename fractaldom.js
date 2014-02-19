@@ -1,6 +1,7 @@
 /*$.widget( "ui.dialog", { _moveToTop: function() { console.log('x'); } });
 $.widget( "ui.dialog", { moveToTop: function() { console.log('x'); } });*/
 
+
 function fractaldom(options) {
 	var nodes = { };
 	var edges = [ ];
@@ -79,8 +80,15 @@ function fractaldom(options) {
 			var npbw = nB.parent().width();
 			var npbh = nB.parent().height();
 
-			ctx.lineWidth = 25;
-			ctx.strokeStyle = '#ffffff';
+			var lineWidth = 25;
+			var lineColor = '#ffffff';
+			var o = E[2];
+			if (o) {
+				lineWidth = o.lineWidth || lineWidth;
+				lineColor = o.lineColor || lineColor;
+			}
+			ctx.lineWidth = lineWidth;
+			ctx.strokeStyle = lineColor;
 			ctx.moveTo(npa.left + (npaw/2),npa.top + (npah/2));
 			ctx.lineTo(npb.left + (npbw/2),npb.top + (npbh/2));
 			ctx.stroke();		
@@ -99,6 +107,81 @@ function fractaldom(options) {
 
 	x.newEdge = function(a, b, opt) {
 		edges.push([a,b,opt]);
+		updateUnderlayCanvas();
+	};
+
+	x.layoutFD = function(affectX, affectY, iterations) {
+		var R = 0.5;
+		var A = 0.5;
+
+		var nodePosition = { };
+
+		for (var i in nodes) {
+			var ip = nodes[i].parent().position();
+			nodePosition[i] = [ ip.left, ip.top ]; //TODO consider width/height
+		}
+
+		for (var n = 0; n < iterations; n++) {
+			//calculate repulsive forces
+			for (var i  in nodes) {
+				var ip = nodePosition[i];
+
+				for (var j in nodes) {
+
+					if (i == j) continue;
+
+					var jp = nodePosition[j];
+
+					var dx = parseFloat(ip[0] - jp[0]);
+					var dy = parseFloat(ip[1] - jp[1]);
+
+					var dist = 0;
+					if (affectX) dist+=dx*dx;
+					if (affectY) dist+=dy*dy;
+					var D = Math.sqrt( dist );
+					if (D == 0) continue;
+
+					D = R / D;	
+					dx*=D; dy*=D;
+
+					if (!affectX) dx = 0;				
+					if (!affectY) dy = 0;
+
+					nodePosition[j] = [ jp[0] - dx, jp[1] - dy ];
+				}	
+			}
+
+			//calculate attractive forces
+			for (var j = 0; j < edges.length; j++) {
+				var a = edges[j][0];
+				var b = edges[j][1];
+				var ap = nodePosition[a];
+				var bp = nodePosition[b];
+
+				var dx = parseFloat(ap[0] - bp[0]);
+				var dy = parseFloat(ap[1] - bp[1]);
+
+				var dist = 0;
+				if (affectX) dist+=dx*dx;
+				if (affectY) dist+=dy*dy;
+				var D = Math.sqrt( dist );
+				if (D == 0) continue;
+
+				D = A / D;
+				dx*=D; dy*=D;
+
+				if (!affectX) dx = 0;				
+				if (!affectY) dy = 0;
+
+				nodePosition[b] = [ bp[0] + dx, bp[1] + dy ];
+			}			
+		}
+
+		for (var i in nodes) {
+			var ip = nodePosition[i];
+			nodes[i].position( ip[0], ip[1]);
+		}
+
 		updateUnderlayCanvas();
 	};
 
@@ -122,6 +205,7 @@ function fractaldom(options) {
 		//opt.focus = function( event, ui ) { console.log(e, 'focus'); return false; };
 
 		e.dialog(opt);
+
 
 		var resized;
 		if (!opt.element) {
@@ -259,11 +343,19 @@ function fractaldom(options) {
 		updateUnderlayCanvas();
 
 
+		var returnable = e;
 		if (f) {
-			return f;
+			returnable = f;
 		}
 
-		return e;
+		e.position = returnable.position = function(x, y) {	
+			e.parent().css('top', y);
+			e.parent().css('left', x);
+		};
+		e.setWidth = returnable.setWidth = function(w) {	e.parent().css('width', w);		}
+		e.setHeight = returnable.setHeight = function(h) {	e.parent().css('height', h);		}
+
+		return returnable;
 	};
 
 	return x;		

@@ -1,7 +1,5 @@
 body {
 	margin: 0; padding: 0;
-	background-image: url(grid.png);
-	background-size: stretch;
 	scroll: none;
 	overflow: hidden;
 }
@@ -32,5 +30,4 @@ div.zoomSlider {
 .fractaldom {
 	overflow: scroll;
 }
-.ui-dialog { opacity: 0.9; }
 
