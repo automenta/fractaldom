@@ -204,6 +204,7 @@ function fractaldom(options) {
 			}
 			resized.attr('zoom', fs);
 
+			updateUnderlayCanvas();
 		}
 		function getZoom() {
 			return parseFloat(e.attr('zoom'));
