@@ -17,15 +17,20 @@ function fractaldom(options) {
 	var dragging = false;
 	var lastPoint = null;
 	var startDragPoint = null;
+	x.mousedown(function(m) {
+		if (m.which==1) { 
+			dragging = true;
+			startDragPoint = [m.clientX, m.clientY];
+		}		
+	});
+	x.mouseup(function(m) {
+		dragging = false;
+	});
 	x.mousemove(function(m) {
 		if (!m.which==1) {
 			dragging = false;
 			lastPoint = null;
 			return;
-		}
-		if (m.which==1) { 
-			dragging = true;
-			startDragPoint = [m.clientX, m.clientY];
 		}
 
 
@@ -220,14 +225,19 @@ function fractaldom(options) {
 		var slider = $('<div>&nbsp;</div>');
 		var mousedown = false;
 		var startZoom = null;
-		slider.mousedown(function() {
-			mousedown = true;
-			startZoom = getZoom();
+		slider.mouseup(function(e) {
+			mousedown = false;
+			return false;
+		});
+		slider.mousedown(function(e) {
+			if (e.which == 1) {
+				mousedown = true;
+				startZoom = getZoom();
+			}
 			return false;
 		});			
 		slider.mousemove(function(e) {
 			if (e.which == 0) mousedown = false;
-			if (e.which == 1) mousedown = true;
 			if (mousedown) {
 				var x = e.offsetX;
 
@@ -238,11 +248,7 @@ function fractaldom(options) {
 				setZoom(z);
 			}
 		});
-		slider.mouseleave(function(e) { mousedown = false; });
-		slider.mouseup(function(e) {
-			mouseup = false;
-			return false;
-		});
+		//slider.mouseleave(function(e) { mousedown = false; });
 		slider.addClass('zoomSlider');
 
 		titlebar.prepend("&nbsp;");
