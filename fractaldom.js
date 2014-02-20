@@ -1,6 +1,7 @@
 /*$.widget( "ui.dialog", { _moveToTop: function() { console.log('x'); } });
 $.widget( "ui.dialog", { moveToTop: function() { console.log('x'); } });*/
 
+var updateUnderlayFPS = 15;
 
 function fractaldom(options) {
 	var nodes = { };
@@ -61,13 +62,14 @@ function fractaldom(options) {
 		underlayCanvas.attr('height', x.height());
 	}
 
-	function updateUnderlayCanvas() {
+	function __updateUnderlayCanvas() {
 		var c = underlayCanvas.get(0);
 		var ctx = c.getContext("2d");
 		
 		//ctx.clearRect(0,0,c.width,c.height);
-		c.width = c.width;
+		c.width = c.width; //clears the canvas
 
+		var labels = [];
 		for (var i = 0; i < edges.length; i++) {
 			var E = edges[i];
 			var nA = nodes[E[0]];
@@ -80,7 +82,7 @@ function fractaldom(options) {
 			var npbw = nB.parent().width();
 			var npbh = nB.parent().height();
 
-			var lineWidth = 25;
+			var lineWidth = 5;
 			var lineColor = '#ffffff';
 			var o = E[2];
 			if (o) {
@@ -89,10 +91,31 @@ function fractaldom(options) {
 			}
 			ctx.lineWidth = lineWidth;
 			ctx.strokeStyle = lineColor;
-			ctx.moveTo(npa.left + (npaw/2),npa.top + (npah/2));
-			ctx.lineTo(npb.left + (npbw/2),npb.top + (npbh/2));
-			ctx.stroke();		
+
+			var x1 = Math.round(npa.left + (npaw/2));
+			var y1 = Math.round(npa.top + (npah/2));
+			var x2 = Math.round(npb.left + (npbw/2));
+			var y2 = Math.round(npb.top + (npbh/2));
+			ctx.moveTo(x1,y1);
+			ctx.lineTo(x2,y2);
+
+			if (o.label) {
+				var text = o.label.substring(0,24);
+				ctx.fillStyle = lineColor;
+  				ctx.font = "bold 24px Arial";
+			    var metrics = ctx.measureText(text);
+			    var width = metrics.width;
+				var mpx = (x1+x2)/2-width/2;
+				var mpy = (y1+y2)/2;
+  				ctx.fillText(text, mpx, mpy);
+			}
 		}
+		ctx.stroke();		
+	}
+	var _updateUnderlayCanvas = _.throttle( __updateUnderlayCanvas, Math.floor(1000.0 / parseFloat(updateUnderlayFPS)) );
+
+	function updateUnderlayCanvas() {
+		_updateUnderlayCanvas();
 	}
 
 	$(window).resize(function() {
@@ -238,6 +261,7 @@ function fractaldom(options) {
 			}
 		}
 		//e.dialog({stack:false});
+		e.dialog({ closeOnEscape: false });
 		e.dialog("widget").draggable("option","containment","none");
 		e.dialog({
 			  drag: function( event, ui ) {

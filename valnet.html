@@ -65,7 +65,7 @@
 		}
 		for (var i = 0; i < data.edges.length; i++) {
 			var E = data.edges[i];
-			d.newEdge(E.from_node, E.to_node, { label: E.label, lineWidth: E.width });
+			d.newEdge(E.from_node, E.to_node, { label: E.label, lineWidth: E.width*3 });
 		}
 	}
 	else {
