@@ -1,7 +1,7 @@
 /*$.widget( "ui.dialog", { _moveToTop: function() { console.log('x'); } });
 $.widget( "ui.dialog", { moveToTop: function() { console.log('x'); } });*/
 
-var updateUnderlayFPS = 15;
+var updateUnderlayFPS = 25;
 
 function fractaldom(options) {
 	var nodes = { };
@@ -27,9 +27,10 @@ function fractaldom(options) {
 	});
 	x.mouseup(function(m) {
 		dragging = false;
+		lastPoint = null;
 	});
 	x.mousemove(function(m) {
-		if (!m.which==1) {
+		if (m.which!=1) {
 			dragging = false;
 			lastPoint = null;
 			return;
@@ -50,6 +51,7 @@ function fractaldom(options) {
 			}
 
 			lastPoint = [m.clientX, m.clientY];		
+
 			updateUnderlayCanvas();
 		}
 	});
@@ -72,15 +74,17 @@ function fractaldom(options) {
 		var labels = [];
 		for (var i = 0; i < edges.length; i++) {
 			var E = edges[i];
-			var nA = nodes[E[0]];
-			var nB = nodes[E[1]];
+			var nA = nodes[E[0]].parent();
+			var nB = nodes[E[1]].parent();
 
-			var npa = nA.parent().position();
-			var npaw = nA.parent().width();
-			var npah = nA.parent().height();
-			var npb = nB.parent().position();
-			var npbw = nB.parent().width();
-			var npbh = nB.parent().height();
+			var docScrollTop = $(document).scrollTop();
+
+			var npa = nA.offset();
+			var npaw = nA.width();
+			var npah = nA.height();
+			var npb = nB.offset();
+			var npbw = nB.width();
+			var npbh = nB.height();
 
 			var lineWidth = 5;
 			var lineColor = '#ffffff';
@@ -93,9 +97,9 @@ function fractaldom(options) {
 			ctx.strokeStyle = lineColor;
 
 			var x1 = Math.round(npa.left + (npaw/2));
-			var y1 = Math.round(npa.top + (npah/2));
+			var y1 = Math.round(npa.top - docScrollTop + (npah/2));
 			var x2 = Math.round(npb.left + (npbw/2));
-			var y2 = Math.round(npb.top + (npbh/2));
+			var y2 = Math.round(npb.top - docScrollTop + (npbh/2));
 			ctx.moveTo(x1,y1);
 			ctx.lineTo(x2,y2);
 
@@ -265,9 +269,15 @@ function fractaldom(options) {
 		e.dialog("widget").draggable("option","containment","none");
 		e.dialog({
 			  drag: function( event, ui ) {
+				dragging = false;
+				lastPoint = null;
+
 				updateUnderlayCanvas();				
 			  },
 			  resize: function( event, ui ) {
+				dragging = false;
+				lastPoint = null;
+
 				updateSize();
 				updateUnderlayCanvas();
 				return false;
@@ -313,7 +323,9 @@ function fractaldom(options) {
 				correctIFrameSize();
 			}
 			else {
-				resized.css('zoom', (fs*100.0) + '%' );
+				var ffs = (fs*100.0) + '%';
+				resized.css('font-size', ffs );
+				//resized.css('zoom', ffs );
 			}
 			resized.attr('zoom', fs);
 
@@ -347,7 +359,9 @@ function fractaldom(options) {
 		slider.mousemove(function(e) {
 			if (e.which == 0) mousedown = false;
 			if (mousedown) {
-				var x = e.offsetX;
+				var px = $(this).offset().left;
+				var x = e.clientX - px;
+				
 
 				var p = (parseFloat(x) / parseFloat($(this).width()));
 				//var z = minZoom + p * (maxZoom - minZoom);

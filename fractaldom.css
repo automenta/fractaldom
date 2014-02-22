@@ -11,6 +11,7 @@ body {
 }
 .fractaldom_surface canvas {
 	pointer-events: none;
+	position: fixed;
 }
 
 /* TODO use a new class, applied to drawalogs */
