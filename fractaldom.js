@@ -130,7 +130,11 @@ function fractaldom(options) {
 			var x2 = Math.round(npb.left + (npbw/2));
 			var y2 = Math.round(npb.top - docScrollTop + (npbh/2));
 
+			var mx = (x1+x2)/2;
+			var my = (y1+y2)/2;
+
 			var existingLine = E.svgLine;
+			var existingLabel = E.svgLabel;
 			if (!existingLine) {
 				E.svgLine = svg.line(x1, y1, x2, y2,{
 					'stroke': lineColor, 
@@ -139,6 +143,10 @@ function fractaldom(options) {
 					'marker-end': "url(#Triangle)",
 					//'marker-pattern': "40 url(#Triangle) 40 url(#Triangle)"
 				});
+				if (o.label) {					
+					E.svgLabel = svg.text(mx, my, o.label, { });
+				}
+ 
 				/*E.svgLine = svg.polyline([[x1,y1],[x2,y2]], {
 					'stroke': lineColor, 
 					'stroke-width': lineWidth,
@@ -155,6 +163,10 @@ function fractaldom(options) {
 				existingLine.setAttribute('y1',y1);
 				existingLine.setAttribute('x2',x2);
 				existingLine.setAttribute('y2',y2);
+				if (existingLabel) {
+					existingLabel.setAttribute('x', mx);
+					existingLabel.setAttribute('y', my);
+				}
 			}
 
 			/*if (o.label) {
