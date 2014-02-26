@@ -37,17 +37,25 @@ function fractaldom(options) {
 			return;
 		}
 
-
 		if (dragging) {
 			if (lastPoint) {
 				var dx = m.clientX - lastPoint[0];
 				var dy = m.clientY - lastPoint[1];
 				for (var n in nodes) {
 					var W = nodes[n];
-					var p = W.parent().position();
-					var P = W.parent();
-					P.css('left', p.left + dx );
-					P.css('top', p.top + dy );
+						
+					var P = W.parentNode;
+					if (!P) {
+						W.parentNode = P = W.parent()[0];
+					}
+
+					var pleft = P.style.left;
+					var ptop = P.style.top;
+					pleft = parseInt(pleft.substring(0, pleft.length-2));
+					ptop = parseInt(ptop.substring(0, ptop.length-2));
+					
+					P.style.left = pleft + dx;
+					P.style.top = ptop + dy;						
 				}
 			}
 
@@ -55,6 +63,7 @@ function fractaldom(options) {
 
 			updateUnderlayCanvas();
 		}
+		return false;
 	});
 
 	//var underlayCanvas = $('<canvas width="200" height="200"/>');
