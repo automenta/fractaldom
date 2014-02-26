@@ -46,16 +46,23 @@ function fractaldom(options) {
 						
 					var P = W.parentNode;
 					if (!P) {
-						W.parentNode = P = W.parent()[0];
+						W.parentJQueryNode = W.parent();
+						W.parentNode = P = W.parentJQueryNode[0];
 					}
 
 					var pleft = P.style.left;
 					var ptop = P.style.top;
-					pleft = parseInt(pleft.substring(0, pleft.length-2));
-					ptop = parseInt(ptop.substring(0, ptop.length-2));
-					
-					P.style.left = pleft + dx;
-					P.style.top = ptop + dy;						
+					if (!pleft) {
+						var ps = P.position();
+						pleft = ps.left;
+						ptop = ps.top;
+					}
+					else {
+						pleft = parseInt(pleft.substring(0, pleft.length-2));
+						ptop = parseInt(ptop.substring(0, ptop.length-2));
+					}
+										
+					W.parentJQueryNode.css( { 'left': pleft+dx, 'top': ptop+dy });
 				}
 			}
 
@@ -63,7 +70,6 @@ function fractaldom(options) {
 
 			updateUnderlayCanvas();
 		}
-		return false;
 	});
 
 	//var underlayCanvas = $('<canvas width="200" height="200"/>');
@@ -216,7 +222,7 @@ function fractaldom(options) {
 	};
 
 	x.layoutFD = function(affectX, affectY, iterations) {
-		var R = 0.5;
+		var R = 0.7;
 		var A = 0.5;
 
 		var nodePosition = { };
@@ -233,7 +239,7 @@ function fractaldom(options) {
 
 				for (var j in nodes) {
 
-					if (i == j) continue;
+					if (i <= j) continue; //skip the lower triangle of the matrix					
 
 					var jp = nodePosition[j];
 
@@ -253,6 +259,7 @@ function fractaldom(options) {
 					if (!affectY) dy = 0;
 
 					nodePosition[j] = [ jp[0] - dx, jp[1] - dy ];
+					nodePosition[i] = [ ip[0] + dx, ip[1] + dy ];
 				}	
 			}
 
