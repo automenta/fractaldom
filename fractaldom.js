@@ -21,16 +21,41 @@ function fractaldom(options) {
 	function globalZoom(mx, my, distScale, nodeScale) {
 		for (var n in nodes) {
 			var W = nodes[n];
-			var wp = W.parent().position();
-			var px = wp.left;
-			var py = wp.top;
+
+			var wn = W.parent()[0];
+			var pleft = wn.style.left;
+			var pwidth = wn.style.width;
+			var ptop = wn.style.top;
+			var pheight = wn.style.height;
+
+			pleft = parseInt(pleft.substring(0, pleft.length-2));
+			ptop = parseInt(ptop.substring(0, ptop.length-2));
+			if (pwidth=="auto")
+				pwidth = W.parent().width();
+			else
+				pwidth = parseInt(pwidth.substring(0, pwidth.length-2));
+			if (pheight=="auto")
+				pheight = W.parent().height();
+			else
+				pheight = parseInt(pheight.substring(0, pheight.length-2));
+
+			var px = pleft + pwidth/2;
+			var py = ptop + pheight/2;
 			
 			var dx = px - mx;
 			var dy = py - my;
 			var nd = Math.sqrt(dx*dx+dy*dy);
 
-			var x = px + dx/nd * distScale;
-			var y = py + dy/nd * distScale;
+			var x, y;
+			if (nd == 0) {
+				x = px; y = py;
+			}
+			else {
+				x = px + dx/nd * distScale;
+				y = py + dy/nd * distScale;
+			}
+			x-= pwidth/2;
+			y-= pheight/2;
 
 			W.parent().css( { left: x, top: y });
 			W.scaleNode(nodeScale);
@@ -425,8 +450,9 @@ function fractaldom(options) {
 
 		function scaleNode(m) {
 			var E = resized.parent().parent();
-			var w = E.width() * m;
-			var h = E.height() * m;
+			var w = Math.max(options.iconSize,E.width() * m);
+			var h = Math.max(options.iconSize,E.height() * m);
+				
 			resized.parent().parent().css('width', w).css('height', h);
 			resized.parent().css('width', w).css('height', h);
 
