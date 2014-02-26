@@ -17,6 +17,39 @@ function fractaldom(options) {
 
 	x.addClass('fractaldom_surface');
 
+
+	function globalZoom(mx, my, distScale, nodeScale) {
+		for (var n in nodes) {
+			var W = nodes[n];
+			var wp = W.parent().position();
+			var px = wp.left;
+			var py = wp.top;
+			
+			var dx = px - mx;
+			var dy = py - my;
+			var nd = Math.sqrt(dx*dx+dy*dy);
+
+			var x = px + dx/nd * distScale;
+			var y = py + dy/nd * distScale;
+
+			W.parent().css( { left: x, top: y });
+			W.scaleNode(nodeScale);
+			W.setZoom(nodeScale);
+		}
+	}
+
+	x.mousewheel(function(evt){
+	    var direction = evt.deltaY;
+		var mx = evt.originalEvent.clientX;
+		var my = evt.originalEvent.clientY;
+		if (direction > 0) {	
+			globalZoom(mx, my, 10, 0.9);
+		}
+		else {
+			globalZoom(mx, my, -10, 1.1);
+		}
+	});
+
 	var dragging = false;
 	var lastPoint = null;
 	var startDragPoint = null;
@@ -500,11 +533,12 @@ function fractaldom(options) {
 		}
 
 		e.position = returnable.position = function(x, y) {	
-			e.parent().css('top', y);
-			e.parent().css('left', x);
+			e.parent().css( {'top': y, 'left': x });
 		};
 		e.setWidth = returnable.setWidth = function(w) {	e.parent().css('width', w);		}
 		e.setHeight = returnable.setHeight = function(h) {	e.parent().css('height', h);		}
+		e.scaleNode = scaleNode;
+		e.setZoom = setZoom;
 
 		return returnable;
 	};
