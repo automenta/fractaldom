@@ -6,7 +6,12 @@
 
 }
 svg text::selection { background: none; }
-underlaySVG hasSVG {
+
+.underlaySVG svg {
+	pointer-events: none;
+}
+
+.underlaySVG {
 	pointer-events: none;
 	position: fixed;
 	-webkit-touch-callout: none;
