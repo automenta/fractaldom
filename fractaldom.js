@@ -279,9 +279,7 @@ function fractaldom(options) {
 		updateUnderlayCanvas();
 	};
 
-	x.layoutFD = function(affectX, affectY, iterations) {
-		var R = 0.7;
-		var A = 0.5;
+	x.layoutFD = function(A, R, affectX, affectY, iterations, normY) {
 
 		var nodePosition = { };
 
@@ -307,7 +305,7 @@ function fractaldom(options) {
 					var dist = 0;
 					if (affectX) dist+=dx*dx;
 					if (affectY) dist+=dy*dy;
-					var D = Math.sqrt( dist );
+					var D = (affectX && affectY) ? Math.sqrt( dist ) : dist;
 					if (D == 0) continue;
 
 					D = R / D;	
@@ -334,7 +332,7 @@ function fractaldom(options) {
 				var dist = 0;
 				if (affectX) dist+=dx*dx;
 				if (affectY) dist+=dy*dy;
-				var D = Math.sqrt( dist );
+				var D = (affectX && affectY) ? Math.sqrt( dist ) : dist;
 				if (D == 0) continue;
 
 				D = A / D;
@@ -344,7 +342,28 @@ function fractaldom(options) {
 				if (!affectY) dy = 0;
 
 				nodePosition[b] = [ bp[0] + dx, bp[1] + dy ];
+				nodePosition[a] = [ ap[0] - dx, ap[1] - dy ];
 			}			
+		}
+
+		if (normY) {
+			var minY=-1, maxY=-1;
+			for (var i in nodes) {
+				var ip = nodePosition[i];
+				var x = ip[0], y = ip[1];
+				if ((minY==-1) || (y < minY))
+					minY = y;
+				if ((maxY==-1) || (y > maxY))
+					maxY = y;
+			}
+
+			if (minY < maxY) {
+				for (var i in nodes) {
+					var ip = nodePosition[i];
+					nodePosition[i][1] = ((ip[1] - minY) / (maxY - minY)) * normY;					
+				}
+			}
+			
 		}
 
 		for (var i in nodes) {
@@ -352,6 +371,7 @@ function fractaldom(options) {
 			nodes[i].position( ip[0], ip[1]);
 		}
 
+		
 		updateUnderlayCanvas();
 	};
 
@@ -396,15 +416,20 @@ function fractaldom(options) {
 			var content = e.parent().find(".ui-dialog-content");
 			var slider = e.parent().find(".zoomSlider");
 
-			if ((w < 1.25 * options.iconSize) || (h < 1.25 * options.iconSize)) {
+
+			if ((options.iconSize === true) || ((w < 1.25 * options.iconSize) || (h < 1.25 * options.iconSize))) {
 				content.hide();
 				slider.hide();
 				tb.css('height', '100%');
+				//title.css('whiteSpace', 'auto');
+				tb.children().addClass('iconized');
 			}
 			else {
 				content.show();
 				slider.show();
 				tb.css('height', 'auto');
+				//title.css('whiteSpace', 'nowrap');
+				tb.children().removeClass('iconized');
 			}
 		}
 		//e.dialog({stack:false});
@@ -563,8 +588,18 @@ function fractaldom(options) {
 		};
 		e.setWidth = returnable.setWidth = function(w) {	e.parent().css('width', w);		}
 		e.setHeight = returnable.setHeight = function(h) {	e.parent().css('height', h);		}
-		e.scaleNode = scaleNode;
-		e.setZoom = setZoom;
+		e.scaleNode = returnable.scaleNode = scaleNode;
+		e.setZoom = returnable.setZoom = setZoom;
+		e.setCloseable = returnable.setCloseable = function(c) {
+			if (c) {
+				e.parent().find(".ui-dialog-titlebar .ui-dialog-titlebar-close").show();
+			}
+			else {
+				e.parent().find(".ui-dialog-titlebar .ui-dialog-titlebar-close").hide();				
+			}
+		}
+
+		updateSize();
 
 		return returnable;
 	};

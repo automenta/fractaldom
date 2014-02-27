@@ -12,7 +12,6 @@ svg text::selection { background: none; }
 }
 
 .underlaySVG {
-	pointer-events: none;
 	position: fixed;
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
@@ -31,7 +30,6 @@ svg text::selection { background: none; }
 }
 .fractal-dialog .ui-dialog-titlebar {
 	padding: 0 !important;
-	text-align: center;
 }
 div.zoomSlider {
 	width: 50px;
@@ -44,4 +42,6 @@ div.zoomSlider {
 	overflow: scroll;
 	padding: 0 !important;
 }
-
+.iconized {
+	white-space: normal !important;
+}
