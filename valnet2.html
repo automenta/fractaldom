@@ -142,6 +142,10 @@
 
 		var zoomlevel = 0;
 
+		var tx = 0, ty = 0;
+		var scale = 1.0;
+		paper.scale(1.0, 1.0, [1,1]);
+
 		var svg = document.querySelector('svg');
 		var pt  = svg.createSVGPoint();
 		surface.mousewheel(function(evt){
@@ -158,23 +162,27 @@
 			if (zoomlevel > 5) zoomlevel = 5;
 			if (zoomlevel < -5) zoomlevel = -5;
 
-			var scale = 1.0 + (zoomlevel/6.0);
+			scale = 1.0 + (zoomlevel/6.0);
 
 			/*var ctm = $('svg .viewport')[0].getScreenCTM();
 			pt.x = mx;
 			pt.y = my;
 			pt = pt.matrixTransform( ctm );*/
 
-			paper.scale(scale, scale/*, mx, my*/);
+			updateView();
 
 		});
 
 
+		function updateView() {
+			var viewport = $('svg .viewport')[0];
+			viewport.setAttribute('transform', 'translate(' + tx + ',' + ty +') scale('+scale+','+scale+')');
+		}
+
 		function translateAll(dx, dy) {
-			var elements = graph.getElements();
-			for (var i = 0; i < elements.length; i++) {
-				elements[i].translate(dx, dy);
-			}
+			tx += dx;
+			ty += dy;
+			updateView();
 		}
 
 		var dragging = false;
