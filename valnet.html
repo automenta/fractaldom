@@ -153,7 +153,7 @@ $(document).ready(function() {
 	$("#ViewResources").click(viewResources);
 	$("#ViewProcesses").click(viewProcessGraph);
 
-	viewAgents();
+	viewProcessGraph();
 });
 
 function viewProcessGraph() {
@@ -196,13 +196,34 @@ function viewProcessGraph() {
 			}				
 		}
 
+		var xScale = 4500;
 		function getX(date) {
-			var xScale = 2500;
 			var x = (maxDate!=minDate) ? xScale * (date - minDate) / (maxDate - minDate) : 0;
 			return x;
 		}
 
+		//add resource type nodes
+		for (var i in valnet.resourceTypes()) {
+			var N = valnet.resourceTypes()[i];
+			var rx = xScale * Math.random();
+			var ry = 500 * Math.random();
 
+			var width = 150;
+			var height = 100;
+			var rb = new joint.shapes.basic.Rect({
+				position: { x: rx, y: ry },
+				size: { width: width, height: height },
+				attrs: { 
+					text: { text: N.name },
+				    rect: { fill: '#bbf' },
+				}
+			});
+			graph.addCell(rb);		
+			N.cell = rb;
+			nodes[i] = N;
+		}
+
+		//add process nodes
 		for (var i in valnet.processes()) {
 			var N = valnet.processes()[i];
 
@@ -215,24 +236,30 @@ function viewProcessGraph() {
 			var rb = new joint.shapes.basic.Rect({
 				position: { x: rx, y: ry },
 				size: { width: width, height: height },
-				attrs: { text: { text: N.name } }
-			});
+				attrs: { 
+					text: { text: N.name },
+				    rect: { fill: '#bfb' },
+				}			});
 			graph.addCell(rb);		
 			N.cell = rb;
 			nodes[i] = N;
 
 			for (var j = 0; j < N.next.length; j++) {
-				var nextResourceType = valnet.resourceTypes()[ N.next[j] ];
-				for (var k = 0; k < nextResourceType.next.length; k++) {
-					var nextProcess = nextResourceType.next[k];
-					edges.push( [i, nextProcess, nextResourceType.name ] );
-				}
+				edges.push( [i, N.next[j], '' ] );
 			}
 		}
+
+		//add outgoing edges from resource types
+		for (var i in valnet.resourceTypes()) {
+			var N = valnet.resourceTypes()[i];				
+			for (var k = 0; k < N.next.length; k++) {
+				var nextProcess = N.next[k];
+				edges.push( [i, nextProcess, '' ] );
+			}
+		}
+
 		for (var i = 0; i < edges.length; i++) {
 			var E = edges[i];
-
-			//d.newEdge(E.from_node, E.to_node, { label: E.label, lineWidth: E.width*3 });
 
 			var from = nodes[E[0]].cell;
 			var to = nodes[E[1]].cell;
@@ -241,17 +268,19 @@ function viewProcessGraph() {
 				source: { id: from.id },
 				target: { id: to.id },
 			});
-			link1.label(0, {
-				position: .5,
-				attrs: {
-					rect: { fill: 'black' },
-					text: { fill: 'white', text: E[2] }
-				}
-			});
+			var label = E[2];
+			if ((label) && (label.length > 0)) {
+				link1.label(0, {
+					position: .5,
+					attrs: {
+						rect: { fill: 'black' },
+						text: { fill: 'white', text: E[2] }
+					}
+				});
+			}
 			graph.addCell(link1);
 		}
 
-		layoutFD(0.5, 1.0, false, true, 25, 3200);
 
 
 
@@ -434,7 +463,19 @@ function viewProcessGraph() {
 			}
 	
 		};
+		console.log('# nodes:', _.keys(nodes).length, '# edges:', _.keys(edges).length);
 
+		layoutFD(1.5, 1.0, false, true, 50, 3200);
+
+/*
+		var cycles = 10;
+		var layoutProc = setInterval(function() {			
+			layoutFD(2.0, 2.0, false, true, 5, 3200);
+			cycles--;
+			if (cycles == 0) {
+				clearInterval(layoutProc);
+			}
+		}, 1000);*/
 
 }
 
