@@ -178,7 +178,8 @@ function viewProcessGraph() {
 		var force = d3.layout.force()
 			.gravity(.02)
 			.linkDistance(150)
-			.charge(-100)
+			.linkStrength(0.4) //necessary to be < 1.0 to make sure charge (repulsion) is stronger
+			.charge(-500)
 			.size([maxWidth, maxHeight]);
 
 
@@ -337,13 +338,13 @@ function viewProcessGraph() {
 			  .attr("height", 16);
 
 		  node.append("text")
-			  .attr("dx", 12)
-			  .attr("dy", "-1em")
+			  .attr("dx", function(d) { return -d.width/2; })
+			  .attr("dy", "1em")
 			  .text(function(d) { return d.name });
 
 		  force.on("tick", function() {
 			node.attr("transform", function(d) { 
-				if (d.fixedX!=undefined) d.x = d.fixedX;
+				if (d.fixedX!=undefined) d.x = d.px = d.fixedX;
 				return "translate(" + d.x + "," + d.y + ")"; 
 			});
 
