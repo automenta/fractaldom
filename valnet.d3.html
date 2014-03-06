@@ -167,7 +167,7 @@ $(document).ready(function() {
 function viewProcessGraph() {
 		$('#content').html('');
 
-		var maxWidth = 1000, maxHeight = 1000;
+		var maxWidth = 4000, maxHeight = 2000;
 
 		var svgCanvas = d3.select("#content").append("svg")
 			.attr("width", "100%")
@@ -176,8 +176,8 @@ function viewProcessGraph() {
 		svg = d3.select("#content svg").append('g');
 
 		var force = d3.layout.force()
-			.gravity(.05)
-			.distance(100)
+			.gravity(.02)
+			.linkDistance(150)
 			.charge(-100)
 			.size([maxWidth, maxHeight]);
 
@@ -231,7 +231,7 @@ function viewProcessGraph() {
 			N.view = paper.findViewByModel(N.cell);
 			nodes[i] = N;*/
 
-			nodes.push( { name: N.name } );
+			nodes.push( { name: N.name, color: "#bbf", width: width, height: 25 } );
 			nodeIndex[i] = nodes.length-1;
 		}
 
@@ -257,7 +257,7 @@ function viewProcessGraph() {
 			N.view = paper.findViewByModel(N.cell);
 			nodes[i] = N;*/
 
-			nodes.push( { name: N.name } );
+			nodes.push( { name: N.name, color: "#bfb", width: width, height: 25, fixedX: rx } );
 			nodeIndex[i] = nodes.length-1;
 
 			for (var j = 0; j < N.next.length; j++) {
@@ -299,7 +299,7 @@ function viewProcessGraph() {
 			//graph.addCell(link1);
 		}
 
-		force
+		 force
 			  .nodes(nodes)
 			  .links(edges)
 			  .start();
@@ -322,6 +322,13 @@ function viewProcessGraph() {
 			  .attr("class", "node")
 			  .call(force.drag);
 
+  		  node.append("rect")
+             .attr("x", function(d) { return -d.width/2; })
+             .attr("y", function(d) { return -d.height/2; })
+             .attr("width", function(d) { return d.width; } )
+             .attr("height", function(d) { return d.height; } )
+			 .style("fill", function(d) { return d.color; });
+
 		  node.append("image")
 			  .attr("xlink:href", "https://github.com/favicon.ico")
 			  .attr("x", -8)
@@ -331,17 +338,22 @@ function viewProcessGraph() {
 
 		  node.append("text")
 			  .attr("dx", 12)
-			  .attr("dy", ".35em")
+			  .attr("dy", "-1em")
 			  .text(function(d) { return d.name });
 
 		  force.on("tick", function() {
+			node.attr("transform", function(d) { 
+				if (d.fixedX!=undefined) d.x = d.fixedX;
+				return "translate(" + d.x + "," + d.y + ")"; 
+			});
+
 			link.attr("x1", function(d) { return d.source.x; })
 				.attr("y1", function(d) { return d.source.y; })
 				.attr("x2", function(d) { return d.target.x; })
 				.attr("y2", function(d) { return d.target.y; });
 
-			node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 		  });
+
 
 
 		var scale = 1.0;
