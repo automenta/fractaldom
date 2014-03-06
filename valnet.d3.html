@@ -352,8 +352,19 @@ function viewProcessGraph() {
 		var ss = $("#content svg");
 		var ssg = $("#content svg g");
 
+		var ended = false;
+	    force.on("end", function() {
+			ended = true;
+		});
+
+
 		function updateSVGTransform() {
 			ssg.attr('transform', 'translate(' + tx + ',' + ty +') scale('+scale+','+scale+')');
+			if (ended) {
+				force.start();
+				force.tick();
+				force.stop();
+			}
 		}
 
 		ss.mousewheel(function(evt){
