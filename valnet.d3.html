@@ -26,20 +26,20 @@
 			padding: 0;
 			font-family: Arial, sans;			
 		}
-		#sidebar {
-			height: 100%;
-			width: 150px;			
+		#menu {
+			height: 3em;
+			width: 100%;			
 			background-color: gray;
 			position: fixed;
 		}
 		#content {
-			padding-left: 150px;
+			padding-top: 3.5em;
 		}
 		.link {
 			pointer-events: none;
 		}
 		.link {
-		  stroke: #ccc;
+		  stroke: #000;
 		}
 
 		.node text {
@@ -54,17 +54,25 @@
 			-ms-user-select: none;
 			user-select: none;
 		}
+		#projectFilter {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			height: 16em;
+			overflow: scroll;
+			
+		}
 	</style>
 </head>
 
 <body>
-	<div id="sidebar">
+	<div id="menu">
 		<button id="ViewProjects">Projects</button>
 		<button id="ViewAgents">Agents</button>
 		<button id="ViewResources">Resources</button>
+		<button id="ViewOrders">Orders</button>
+		<button id="ViewProcesses">Processes</button>
 		<button id="ViewStatistics">Statistics</button>
-		<button id="ViewProcesses">Process Graph</button>
-		<input id="GraphLayout" type="checkbox" checked="checked"/>
 	</div>
 	<div id="content"></div>
 </body>
@@ -88,8 +96,11 @@ function ValnetModel(v) {
 }
 
 var valnet;
-function load() {
-	valnet = ValnetModel(valnetState);
+function load(f) {
+	$.getJSON('project_processes_agents_resourcetypes_orders2.json', function(valnetState) {
+		valnet = ValnetModel(valnetState);
+		f();
+	});
 }
 
 function viewStatistics() {
@@ -149,25 +160,80 @@ function viewAgents() {
 }
 
 function viewResources() {
+	var c = $('<div/>');
+
+	function newResourceSummary(aid, a) {
+		var s = $('<div/>');
+		s.append('<h2><a href="' + a.url + '">' + a.name + '</a></h2>');
+		//s.append(JSON.stringify(a));
+		if (a['photo-url']) {
+			s.append('<img src="' + a['photo-url'] + '"/>')
+		}
+		s.append('<br/>');
+		/*s.append('Processes:<br/>');
+		var proclist = $('<ul/>');
+		var procs = a.processes;
+		_.each(procs, function(pr) {
+			var P = valnet.processes()[pr];
+			proclist.append('<li>' + P.name + '</li>');
+		});
+		s.append(proclist);*/
+		return s;
+	}
+
+	_.each( valnet.resourceTypes(), function(a, aid) {
+		c.append(newResourceSummary(aid, a));
+	});
+
+	$('#content').html(c);
 }
 
+function viewOrders() {
+    /*"Order-104": {
+      "url": "\/accounting\/order-schedule\/104\/",
+      "next": [
+        
+      ],
+      "name": "",
+      "for": "",
+      "due": "2013-10-10"
+    },*/
+}
 
 $(document).ready(function() {
-	load();
+	load(function() {
 
-	$("#ViewProjects").click(viewProjects);
-	$("#ViewStatistics").click(viewStatistics);
-	$("#ViewAgents").click(viewAgents);
-	$("#ViewResources").click(viewResources);
-	$("#ViewProcesses").click(viewProcessGraph);
+		$("#ViewProjects").click(viewProjects);
+		$("#ViewStatistics").click(viewStatistics);
+		$("#ViewAgents").click(viewAgents);
+		$("#ViewResources").click(viewResources);
+		$("#ViewProcesses").click(viewProcessGraph);
 
-	viewProcessGraph();
+		viewProcessGraph();
+
+	});
 });
 
 function viewProcessGraph() {
 		$('#content').html('');
 
-		var maxWidth = 4000, maxHeight = 2000;
+		//add Project filter
+		var projectFilter = $('<div/>');
+		projectFilter.append('<b>Projects:</b><br/>');
+		projectFilter.attr('id', 'projectFilter');
+		for (var i in valnet.projects()) {
+			var P = valnet.projects()[i];
+			var cb = $('<input type="checkbox"/>');
+			cb.click(function() {
+				alert('TODO: redraw graph');
+			});
+			projectFilter.append(cb);
+			projectFilter.append(P.name);
+			projectFilter.append('<br/>');
+		}
+		$('#content').append(projectFilter);
+
+		var maxWidth = 6000, maxHeight = 4000;
 
 		var svgCanvas = d3.select("#content").append("svg")
 			.attr("width", "100%")
@@ -178,7 +244,7 @@ function viewProcessGraph() {
 		var force = d3.layout.force()
 			.gravity(.02)
 			.linkDistance(150)
-			.linkStrength(0.4) //necessary to be < 1.0 to make sure charge (repulsion) is stronger
+			.linkStrength(0.1) //necessary to be < 1.0 to make sure charge (repulsion) is stronger
 			.charge(-500)
 			.size([maxWidth, maxHeight]);
 
@@ -344,13 +410,13 @@ function viewProcessGraph() {
 
 		  force.on("tick", function() {
 			node.attr("transform", function(d) { 
-				if (d.fixedX!=undefined) d.x = d.px = d.fixedX;
+				if (d.fixedX!=undefined) d.x = d.fixedX;
 				return "translate(" + d.x + "," + d.y + ")"; 
 			});
 
-			link.attr("x1", function(d) { return d.source.x; })
+			link.attr("x1", function(d) { return d.source.x + d.source.width/2; })
 				.attr("y1", function(d) { return d.source.y; })
-				.attr("x2", function(d) { return d.target.x; })
+				.attr("x2", function(d) { return d.target.x - d.target.width/2; })
 				.attr("y2", function(d) { return d.target.y; });
 
 		  });
